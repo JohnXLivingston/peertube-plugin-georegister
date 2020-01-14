@@ -26,5 +26,8 @@
   "staticDirs": {},
   "translations": {
     "fr-FR": "./languages/fr.json"
+  },
+  "dependencies": {
+    "whois": "^2.11.0"
   }
 }

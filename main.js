@@ -7,6 +7,18 @@ async function register ({
   videoLicenceManager,
   videoLanguageManager
 }) {
+  registerSetting({
+    name: 'countries',
+    label: 'Countries codes. Coma separated list. Ex: "US,RU"',
+    type: 'input',
+    private: true,
+    default: ''
+  })
+
+  registerHook({
+    target: "filter:api.user.signup.allowed.result",
+    handler: (result, params) => verifyIP(result, params, settingsManager)
+  })
 
 }
 
@@ -17,4 +29,8 @@ async function unregister () {
 module.exports = {
   register,
   unregister
+}
+
+async function verifyIP(result, params, settingsManager) {
+
 }
