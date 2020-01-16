@@ -1,7 +1,7 @@
 {
   "name": "peertube-plugin-georegister",
   "description": "PeerTube plugin for allowing registration depending on ip countries",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "John Livingston",
   "bugs": "https://framagit.org/Livingston/peertube-plugin-georegister/issues",
   "clientScripts": [],
@@ -26,6 +26,6 @@
   "staticDirs": {},
   "translations": {},
   "dependencies": {
-    "whois": "^2.11.0"
+    "whois-json": "^2.0.4"
   }
 }
