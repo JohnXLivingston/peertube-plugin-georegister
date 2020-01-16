@@ -1,4 +1,4 @@
-const whois = require('whois')
+const whois = require('whois-json')
 
 async function register ({
   registerHook,
@@ -12,20 +12,20 @@ async function register ({
 }) {
   registerSetting({
     name: 'forbidden_countries',
-    label: 'Forbidden countries codes. Coma separated list. Ex: "US,RU"',
-    type: 'input',
+    label: 'Forbidden countries 2 character codes (US, FR, ...). One per line.',
+    type: 'input-textarea',
     private: true,
     default: ''
   })
   registerSetting({
     name: 'allowed_countries',
-    label: 'Allowed countries codes. Coma separated list. If empty, all countries are allowed by default',
-    type: 'input',
+    label: 'Allowed countries 2 character codes (US, FR, ...). One per line. If empty, all countries are allowed by default',
+    type: 'input-textarea',
     private: true,
     default: ''
   })
   registerSetting({
-    name: 'errorMessage',
+    name: 'error_message',
     label: 'Error message',
     type: 'input',
     private: true,
@@ -65,32 +65,59 @@ async function verifyIP(result, params, settingsManager, peertubeHelpers) {
     return result
   }
 
-  const allowed_setting = await settingsManager.getSetting('allowed_countries')
-  const forbidden_setting = await settingsManager.getSetting('forbidden_countries')
-  const allowed = allowed_setting === undefined ? [] : allowed_setting.split(/,/)
-  const forbidden = forbidden_setting === undefined ? [] : forbidden_setting.split(/,/)
+  const allowed = await readCountriesConf(logger, settingsManager, 'allowed_countries')
+  const forbidden = await readCountriesConf(logger, settingsManager, 'forbidden_countries')
   if ( allowed.length === 0 && forbidden.length === 0 ) {
     logger.debug('No configuration for this plugin')
     return result
   }
-  const errorMessage = await settingsManager.getSetting('errorMessage')
+  const errorMessage = await settingsManager.getSetting('error_message')
 
   const ip = params.ip
+  //const ip = '50.122.1.12'
   if ( ip === null || ip === undefined ) {
     logger.error('Ip is not available. Pleaser check the peertube-plugin_georegister compatibility with your peertube version.')
     return result
   }
 
-  logger.debug('The client IP is '+ip+'. Trying the Whois.')
-  const p = new Promise()
-  whois.lookup(ip, (err, data) => {
-    if ( err ) {
-      logger.error('The whois on '+ip+' failed. I will allow the regisration.')
-      p.resolve(result)
-      return
-    }
-    logger.debug('The whois return is:\n'+data)
-    p.resolve({ allowed: false, errorMessage: errorMessage })
-  })
-  return await p
+  const countries = await getCountries(logger, ip)
+  if ( ! countries.length ) {
+    logger.error('Cant find country for ip ' + ip + ', I will allow the registration.')
+    return result
+  }
+
+  // First, the white list.
+  // TODO
+
+  return result
+  //return { allowed: false, errorMessage: errorMessage }
+}
+
+const countryRegex = RegExp('[A-Z]{2}')
+async function readCountriesConf(logger, settingsManager, name) {
+  const s = await settingsManager.getSetting(name)
+  let a = s === undefined ? [] : s.split(/\n/)
+  a = a.map(c => c.trim().toUpperCase())
+  a = a.filter(c => c != '')
+
+  const invalid = a.filter(c => ! countryRegex.test(c))
+  if ( invalid.length ) {
+    logger.error('There are invalid countries in ' + name + ': '. join(', ', invalid))
+    a = a.filter(c => countryRegex.test(c))
+  }
+
+  logger.debug('Countries in conf ' + name + ' are: ' + a.join(', '))
+  return a
+}
+
+async function getCountries(logger, ip) {
+  // Note: there might be several countries in whois informations. So this function returns an array.
+  logger.debug('The client IP is ' + ip + '. Trying the Whois.')
+  const json = await whois(ip, {follow: 3})
+  // If a key is seen multiple times by whois-json, the result will be: "FR US"
+  if ( ! ( 'country' in json ) ) {
+    logger.debug('No country key in the result')
+    return []
+  }
+  return json.country.trim().split(/\s+/)
 }
