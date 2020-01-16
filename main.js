@@ -12,15 +12,15 @@ async function register ({
 }) {
   registerSetting({
     name: 'forbidden_countries',
-    label: 'Forbidden countries 2 character codes (US, FR, ...). One per line.',
-    type: 'input-textarea',
+    label: 'Forbidden countries 2 character codes. Coma separated list. Ex: "US,FR,VN".',
+    type: 'input',
     private: true,
     default: ''
   })
   registerSetting({
     name: 'allowed_countries',
-    label: 'Allowed countries 2 character codes (US, FR, ...). One per line. If empty, all countries are allowed by default',
-    type: 'input-textarea',
+    label: 'Allowed countries 2 character codes. Coma separated list. If empty, all countries are allowed by default',
+    type: 'input',
     private: true,
     default: ''
   })
@@ -107,7 +107,7 @@ async function verifyIP(result, params, settingsManager, peertubeHelpers) {
 const countryRegex = RegExp('[A-Z]{2}')
 async function readCountriesConf(logger, settingsManager, name) {
   const s = await settingsManager.getSetting(name)
-  let a = s === undefined ? [] : s.split(/\n/)
+  let a = s === undefined ? [] : s.split(/,/)
   a = a.map(c => c.trim().toUpperCase())
   a = a.filter(c => c != '')
 
