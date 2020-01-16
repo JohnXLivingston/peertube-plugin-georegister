@@ -74,23 +74,34 @@ async function verifyIP(result, params, settingsManager, peertubeHelpers) {
   const errorMessage = await settingsManager.getSetting('error_message')
 
   const ip = params.ip
-  //const ip = '50.122.1.12'
   if ( ip === null || ip === undefined ) {
     logger.error('Ip is not available. Pleaser check the peertube-plugin_georegister compatibility with your peertube version.')
     return result
   }
 
   const countries = await getCountries(logger, ip)
-  if ( ! countries.length ) {
-    logger.error('Cant find country for ip ' + ip + ', I will allow the registration.')
-    return result
-  }
+  // Here, countries is always an array. But it can be empty if getCountries failed.
+  // In case of fail:
+  // - if there is a whitelist, the user will be blocked
+  // - else he will always be able to register
 
   // First, the white list.
-  // TODO
+  if ( allowed.length ) {
+    if ( ! testCountries(logger, allowed, countries) ) {
+      logger.debug('Due to the allowed_countries, this user cannot signup.')
+      return { allowed: false, errorMessage: errorMessage }
+    }
+  }
+
+  // Then the blacklist
+  if ( forbidden.length ) {
+    if ( testCountries(logger, forbidden, countries) ) {
+      logger.debug('Due to the forbidden_countries, this user cannot signup.')
+      return { allowed: false, errorMessage: errorMessage }
+    }
+  }
 
   return result
-  //return { allowed: false, errorMessage: errorMessage }
 }
 
 const countryRegex = RegExp('[A-Z]{2}')
@@ -113,11 +124,30 @@ async function readCountriesConf(logger, settingsManager, name) {
 async function getCountries(logger, ip) {
   // Note: there might be several countries in whois informations. So this function returns an array.
   logger.debug('The client IP is ' + ip + '. Trying the Whois.')
-  const json = await whois(ip, {follow: 3})
+  let json
+  try {
+    json = await whois(ip, {follow: 3})
+  } catch(err) {
+    logger.error('The whois failed with error: ' + err)
+    json = {}
+  }
   // If a key is seen multiple times by whois-json, the result will be: "FR US"
   if ( ! ( 'country' in json ) ) {
     logger.debug('No country key in the result')
     return []
   }
-  return json.country.trim().split(/\s+/)
+  const countries = json.country.trim().split(/\s+/).map(c => c.toUpperCase())
+  logger.debug('Countries for ip ' + ip + ' are: ' + countries.join(', '))
+  return countries
+}
+
+function testCountries(logger, config, user) {
+  for ( let i = 0; i < user.length; i++ ) {
+    const c = user[i]
+    if ( config.indexOf(c) >= 0 ) {
+      logger.debug('The country ' + c + ' is found in the array')
+      return true
+    }
+  }
+  return false
 }
