@@ -24,9 +24,7 @@
     "build": "webpack --mode=production"
   },
   "staticDirs": {},
-  "translations": {
-    "fr-FR": "./languages/fr.json"
-  },
+  "translations": {},
   "dependencies": {
     "whois": "^2.11.0"
   }
