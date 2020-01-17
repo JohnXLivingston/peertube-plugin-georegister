@@ -1,16 +1,12 @@
 {
   "name": "peertube-plugin-georegister",
   "description": "PeerTube plugin for allowing registration depending on ip countries",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "John Livingston",
   "bugs": "https://framagit.org/Livingston/peertube-plugin-georegister/issues",
   "clientScripts": [],
   "css": [],
-  "devDependencies": {
-    "@purtuga/esm-webpack-plugin": "^1.1.1",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.10"
-  },
+  "devDependencies": {},
   "engine": {
     "peertube": ">=2.1.0"
   },
@@ -20,9 +16,7 @@
     "plugin"
   ],
   "library": "./main.js",
-  "scripts": {
-    "build": "webpack --mode=production"
-  },
+  "scripts": {},
   "staticDirs": {},
   "translations": {},
   "dependencies": {
