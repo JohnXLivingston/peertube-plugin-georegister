@@ -88,7 +88,7 @@ async function verifyIP(result, params, settingsManager, peertubeHelpers) {
   // First, the white list.
   if ( allowed.length ) {
     if ( ! testCountries(logger, allowed, countries) ) {
-      logger.debug('Due to the allowed_countries, this user cannot signup.')
+      logger.info('Due to the allowed_countries, this user cannot signup. IP: ' + ip)
       return { allowed: false, errorMessage: errorMessage }
     }
   }
@@ -96,7 +96,7 @@ async function verifyIP(result, params, settingsManager, peertubeHelpers) {
   // Then the blacklist
   if ( forbidden.length ) {
     if ( testCountries(logger, forbidden, countries) ) {
-      logger.debug('Due to the forbidden_countries, this user cannot signup.')
+      logger.info('Due to the forbidden_countries, this user cannot signup. IP: ' + ip)
       return { allowed: false, errorMessage: errorMessage }
     }
   }
