@@ -1,6 +1,7 @@
 # PeerTube peertube-plugin-georegister
 
 Main repository: https://framagit.org/Livingston/peertube-plugin-georegister.
+
 Clone repository: https://github.com/JohnXLivingston/peertube-plugin-georegister.
 
 Peertube plugin for blocking registration depending on ip's country.
